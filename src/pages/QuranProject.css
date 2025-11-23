@@ -1,0 +1,105 @@
+.quran-hero {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    padding: 6rem 0;
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.quran-hero::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(var(--color-accent) 1px, transparent 1px);
+    background-size: 30px 30px;
+    opacity: 0.1;
+}
+
+.quran-icon {
+    color: var(--color-accent);
+    margin-bottom: 1.5rem;
+}
+
+.quran-hero h1 {
+    color: var(--color-white);
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.quran-hero p {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.quran-content {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 4rem;
+    align-items: start;
+}
+
+.quran-features h2 {
+    margin-bottom: 2rem;
+}
+
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--color-white);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-bg-secondary);
+}
+
+.check-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.feature-item p {
+    font-weight: 600;
+}
+
+.join-card {
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    position: sticky;
+    top: 100px;
+}
+
+.join-card h2 {
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+}
+
+.join-card p {
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .quran-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .join-card {
+        position: static;
+    }
+}

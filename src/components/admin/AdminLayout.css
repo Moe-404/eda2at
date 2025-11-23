@@ -1,0 +1,116 @@
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--color-bg);
+}
+
+.admin-sidebar {
+    width: 280px;
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+    border-right: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-white);
+}
+
+.nav-item.active {
+    background-color: rgba(197, 160, 89, 0.1);
+    color: var(--color-accent);
+    border-right-color: var(--color-accent);
+}
+
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-white);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.admin-main {
+    flex: 1;
+    margin-right: 280px;
+    padding: 2rem;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+    color: var(--color-text-light);
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 0;
+        transform: translateX(100%);
+    }
+
+    .admin-main {
+        margin-right: 0;
+    }
+}

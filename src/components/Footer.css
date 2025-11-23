@@ -1,0 +1,29 @@
+.footer {
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+    padding: 3rem 0 1rem;
+    margin-top: auto;
+    border-top: 5px solid var(--color-accent);
+}
+
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    text-align: center;
+}
+
+.footer-content h3 {
+    color: var(--color-accent);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.footer-bottom {
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
