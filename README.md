@@ -1,12 +1,20 @@
 # Sabeel Al-Eda'at - Islamic Website
 
-Full-stack Islamic content management platform with admin dashboard.
+A modern Islamic website featuring books, articles, videos, and consultation services.
+
+## Features
+
+- 📚 **Book Library** - Browse and download Islamic books
+- 📝 **Articles** - Read Islamic articles and insights
+- 🎥 **Videos** - Watch Islamic educational videos
+- 💬 **Consultations** - Request family and medical consultations
+- 📧 **Contact** - Get in touch with the team
+- 🔐 **Admin Panel** - Manage all content
 
 ## Tech Stack
 
-- **Frontend**: React + Vite, Vanilla CSS
+- **Frontend**: React + Vite
 - **Backend**: Node.js + Express
-- **Database**: PostgreSQL
 - **Containerization**: Docker + Docker Compose
 
 ## Features

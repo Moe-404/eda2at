@@ -14,8 +14,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Set API URL for production (can be overridden in docker-compose)
-ARG VITE_API_URL=http://localhost/api
+# Set API URL for production - deployed backend with Supabase
+ARG VITE_API_URL=https://eda2at-backend-47e54e65eda8.hosted.ghaymah.systems/api
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the application
