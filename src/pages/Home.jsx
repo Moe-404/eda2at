@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Video, Users } from 'lucide-react';
+import { BookOpen, Video, Users } from 'lucide-react';
+import heroBanner from '../assets/سبيل اضاءات.jpeg';
 import './Home.css';
 
 const Home = () => {
@@ -8,19 +9,30 @@ const Home = () => {
         <div className="home-page">
             {/* Hero Section */}
             <section className="hero">
-                <div className="pattern-overlay"></div>
-                <div className="container hero-content">
-                    <h1>سبيل الإضاءات</h1>
-                    <p className="hero-subtitle">اسم جذاب وسهل الحفظ وله طابع هادئ وإيماني</p>
-                    <div className="hero-buttons">
-                        <Link to="/books" className="btn btn-primary">
-                            <BookOpen size={20} />
-                            تصفح الكتب
-                        </Link>
-                        <Link to="/videos" className="btn btn-accent">
-                            <Video size={20} />
-                            شاهد الفيديوهات
-                        </Link>
+                <div className="hero-overlay" aria-hidden />
+                <div className="hero-content">
+                    <div className="hero-layout">
+                        <div className="hero-media">
+                            <img src={heroBanner} alt="سبيل الإضاءات" className="hero-side-image" loading="lazy" />
+                        </div>
+                        <div className="hero-panel">
+                            <div className="hero-center">
+                                <h1>سبيل الإضاءات</h1>
+                                <p className="hero-subtitle">رؤية شرعية إصلاحية - وعي - بيان</p>
+                            </div>
+                            <div className="hero-actions">
+                                <div className="hero-buttons">
+                                    <Link to="/books" className="btn btn-primary">
+                                        <BookOpen size={20} />
+                                        تصفح الكتب
+                                    </Link>
+                                    <Link to="/videos" className="btn btn-accent">
+                                        <Video size={20} />
+                                        شاهد الفيديوهات
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

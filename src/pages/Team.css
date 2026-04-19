@@ -1,0 +1,209 @@
+.team-page {
+    padding: 4rem 0;
+}
+
+.team-tree {
+    background: var(--color-white);
+    border: 1px solid var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.tree-root,
+.tree-vision,
+.tree-mission,
+.tree-owner {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+}
+
+.tree-root {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.tree-vision {
+    background: var(--color-accent);
+    color: var(--color-primary-dark);
+}
+
+.tree-mission {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.tree-owner {
+    background: var(--color-bg-secondary);
+    color: var(--color-primary);
+}
+
+.tree-grid {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+}
+
+.tree-card {
+    border: 1px solid var(--color-bg-secondary);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.tree-card h3 {
+    margin: 0;
+    background: var(--color-primary);
+    border-bottom: 1px solid var(--color-accent);
+    font-size: 1rem;
+    padding: 0.65rem;
+    color: var(--color-white);
+}
+
+.member-list {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.member-btn {
+    width: 100%;
+    border: 1px solid var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    padding: 0.7rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.member-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-accent);
+}
+
+.member-btn.active {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.member-avatar {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-accent);
+}
+
+.member-name {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.member-role {
+    font-size: 0.88rem;
+    color: var(--color-text-light);
+}
+
+.member-more {
+    font-size: 0.82rem;
+    color: var(--color-accent);
+    font-weight: 700;
+}
+
+.member-profile {
+    background: var(--color-white);
+    border: 1px solid var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.profile-head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-photo {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+    border: 3px solid var(--color-accent);
+}
+
+.member-profile h2 {
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.member-profile h3 {
+    color: var(--color-accent);
+    margin: 0.2rem 0;
+}
+
+.bio-lead {
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.bio-note {
+    margin-top: 0.45rem;
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+}
+
+.bio-box {
+    border: 1px solid var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    padding: 1rem;
+}
+
+.bio-box h4 {
+    margin-bottom: 0.75rem;
+    color: var(--color-primary);
+}
+
+.bio-box ul {
+    margin: 0;
+    padding-right: 1.2rem;
+}
+
+.bio-box li {
+    margin-bottom: 0.45rem;
+}
+
+@media (max-width: 768px) {
+    .team-page {
+        padding: 2.5rem 0;
+    }
+
+    .team-tree,
+    .member-profile {
+        padding: 1.2rem;
+    }
+
+    .profile-head {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
+}

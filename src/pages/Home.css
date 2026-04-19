@@ -1,32 +1,87 @@
 .hero {
-  background-color: var(--color-bg-secondary);
-  padding: 6rem 0;
-  text-align: center;
   position: relative;
+  height: 100vh;
+  width: 100%;
   overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(160deg, var(--color-primary-dark), var(--color-primary));
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(230, 200, 138, 0.16), transparent 46%),
+    linear-gradient(160deg, rgba(2, 44, 24, 0.2), rgba(4, 77, 41, 0.15));
+  backdrop-filter: blur(6px);
+  z-index: -2;
 }
 
 .hero-content {
+  height: 100vh;
   position: relative;
   z-index: 1;
 }
 
+.hero-layout {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(42%, 48%) 1fr;
+  direction: ltr;
+}
+
+.hero-media {
+  height: 100%;
+}
+
+.hero-side-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border-left: 0;
+  border-top: 0;
+  border-bottom: 0;
+  border-right: 2px solid rgba(230, 200, 138, 0.55);
+}
+
+.hero-panel {
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem clamp(1.2rem, 4vw, 4rem);
+}
+
+.hero-center {
+  margin-bottom: 2rem;
+}
+
 .hero h1 {
-  font-size: 4rem;
+  font-size: clamp(2.4rem, 6vw, 5rem);
   margin-bottom: 1rem;
-  color: var(--color-primary);
+  color: var(--color-white);
+  text-shadow: 0 4px 22px rgba(0, 0, 0, 0.35);
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  color: var(--color-text-light);
-  margin-bottom: 2rem;
+  font-size: clamp(1rem, 2.2vw, 1.55rem);
+  color: var(--color-accent-light);
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.35);
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .hero-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .about-section {
@@ -92,4 +147,43 @@
 .feature-card h3 {
   color: var(--color-white);
   margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 100vh;
+  }
+
+  .hero-content {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .hero-layout {
+    grid-template-columns: 1fr;
+    direction: rtl;
+    min-height: 100vh;
+  }
+
+  .hero-media {
+    height: auto;
+    padding: 1rem 1rem 0;
+  }
+
+  .hero-side-image {
+    height: auto;
+    max-height: 42vh;
+    border: 2px solid rgba(230, 200, 138, 0.55);
+    border-radius: var(--radius-lg);
+  }
+
+  .hero-panel {
+    text-align: center;
+    padding: 1rem 1rem 2rem;
+  }
+
+  .hero-actions,
+  .hero-buttons {
+    justify-content: center;
+  }
 }
