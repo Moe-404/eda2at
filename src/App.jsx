@@ -9,7 +9,6 @@ import Videos from './pages/Videos';
 import Consultations from './pages/Consultations';
 import QuranProject from './pages/QuranProject';
 import Contact from './pages/Contact';
-import Team from './pages/Team';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -35,7 +34,6 @@ function App() {
             <Route path="/consultations" element={<Consultations />} />
             <Route path="/quran" element={<QuranProject />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/team" element={<Team />} />
           </Route>
 
           {/* Admin Login */}

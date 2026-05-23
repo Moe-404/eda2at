@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
-import idaatLogo from '../assets/idaat logo.png';
+import { Menu, X, Moon, Sun } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -14,7 +13,6 @@ const Navbar = () => {
         { name: 'الإضاءات', path: '/articles' },
         { name: 'الفيديوهات', path: '/videos' },
         { name: 'الاستشارات', path: '/consultations' },
-        { name: 'فريق العمل', path: '/team' },
         // { name: 'مشروع التلاوة', path: '/quran' }, // Delayed
         { name: 'تواصل معنا', path: '/contact' },
     ];
@@ -25,14 +23,6 @@ const Navbar = () => {
         <nav className="navbar">
             <div className="container navbar-container">
                 <Link to="/" className="logo">
-                    <img
-                        src={idaatLogo}
-                        alt=""
-                        className="logo-img"
-                        
-                        decoding="async"
-                        aria-hidden
-                    />
                     <span className="logo-text">سبيل الإضاءات</span>
                 </Link>
 
