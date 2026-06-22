@@ -1,79 +1,55 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ExternalLink, X } from 'lucide-react';
-import idaatPdf1 from '../assets/idaat/الإضاءة التاسعة والعشرون أهل القبلة بين الانقسام الداخلي والتآكل الصامت .. من صراع الإيدلوجيات إلى وحدة المقاصد… -.docx.pdf';
-import idaatPdf2 from '../assets/idaat/الإضاءة الواحدة والثلاثون أشراطُ الساعة من الملاحمِ والفتن، ونقدِ الواقعِ المضطرب، إلى ضبطِ العلاماتِ وفقهِ الغايات.pdf';
-import idaatPdf3 from '../assets/idaat/الإضاءة التاسعة والعشرون أهل القبلة بين الانقسام الداخلي والتآكل الصامت .. من صراع الإيدلوجيات إلى وحدة المقاصد… -.docx (1).pdf';
-import idaatPdf4 from '../assets/idaat/الإضاءة الثلاثون الأسري بين قداسة التشريع وانحراف التوظيف - أحكام قتل الأسري.pdf';
+import { ArrowLeft, ExternalLink, X, Calendar, User } from 'lucide-react';
+import SEO from '../components/SEO';
+import ShareButtons from '../components/ShareButtons';
+import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination';
+import { CardGridSkeleton } from '../components/Skeleton';
+import { categoryLabel } from '../constants/categories';
 import './Articles.css';
-
-const localIdaat = [
-    {
-        id: 'idaat-29-a',
-        title: 'الإضاءة التاسعة والعشرون: أهل القبلة بين الانقسام الداخلي والتآكل الصامت',
-        author: 'مشروع إضاءات',
-        published_date: '2026-01-01',
-        excerpt: 'من صراع الإيدلوجيات إلى وحدة المقاصد.',
-        pdf_url: idaatPdf1,
-        type: 'pdf',
-    },
-    {
-        id: 'idaat-31',
-        title: 'الإضاءة الواحدة والثلاثون: أشراط الساعة من الملاحم والفتن',
-        author: 'مشروع إضاءات',
-        published_date: '2026-01-02',
-        excerpt: 'نقد الواقع المضطرب وضبط العلامات وفقه الغايات.',
-        pdf_url: idaatPdf2,
-        type: 'pdf',
-    },
-    {
-        id: 'idaat-29-b',
-        title: 'الإضاءة التاسعة والعشرون (نسخة إضافية)',
-        author: 'مشروع إضاءات',
-        published_date: '2026-01-03',
-        excerpt: 'نسخة إضافية من ملف الإضاءة التاسعة والعشرين.',
-        pdf_url: idaatPdf3,
-        type: 'pdf',
-    },
-    {
-        id: 'idaat-30',
-        title: 'الإضاءة الثلاثون: الأسرى بين قداسة التشريع وانحراف التوظيف',
-        author: 'مشروع إضاءات',
-        published_date: '2026-01-04',
-        excerpt: 'دراسة في أحكام قتل الأسرى بمنهج شرعي منضبط.',
-        pdf_url: idaatPdf4,
-        type: 'pdf',
-    },
-];
 
 const Articles = () => {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedArticle, setSelectedArticle] = useState(null);
+    const [search, setSearch] = useState('');
+    const [category, setCategory] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        fetchArticles();
-    }, []);
+        const t = setTimeout(() => setPage(1), 400);
+        return () => clearTimeout(t);
+    }, [search, category]);
 
-    const fetchArticles = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/articles`);
-            const data = await response.json();
-            if (Array.isArray(data) && data.length > 0) {
-                setArticles([...localIdaat, ...data]);
-            } else {
-                setArticles(localIdaat);
+    useEffect(() => {
+        const controller = new AbortController();
+        const load = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams({ page, limit: 12, status: 'published' });
+                if (search) params.set('search', search);
+                if (category) params.set('category', category);
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/articles?${params}`, {
+                    signal: controller.signal,
+                });
+                const json = await res.json();
+                const rows = Array.isArray(json) ? json : json.data || [];
+                setArticles(rows);
+                setTotalPages(json.pagination?.totalPages || 1);
+            } catch (err) {
+                if (err.name !== 'AbortError') setArticles([]);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error('Error fetching articles:', error);
-            setArticles(localIdaat);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        load();
+        return () => controller.abort();
+    }, [page, search, category]);
 
     const openArticle = (article) => {
         setSelectedArticle(article);
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
     };
 
     const closeArticle = () => {
@@ -81,64 +57,93 @@ const Articles = () => {
         document.body.style.overflow = 'auto';
     };
 
-    if (loading) {
-        return (
-            <div className="articles-page">
-                <div className="container">
-                    <div className="section-title">
-                        <h1>الإضاءات</h1>
-                    </div>
-                    <p style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="articles-page">
+            <SEO
+                title="الإضاءات"
+                description="مقالات وإضاءات شرعية إصلاحية تعالج قضايا معاصرة بمنهج علمي منضبط."
+                keywords="إضاءات, مقالات إسلامية, فقه, عقيدة, تزكية"
+            />
             <div className="container">
                 <div className="section-title">
                     <h1>الإضاءات</h1>
                 </div>
 
-                {articles.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-                        لا توجد إضاءات متاحة حالياً
+                <SearchBar
+                    search={search}
+                    onSearchChange={setSearch}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    placeholder="ابحث في الإضاءات..."
+                />
+
+                {loading ? (
+                    <CardGridSkeleton count={6} />
+                ) : articles.length === 0 ? (
+                    <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
+                        لا توجد إضاءات مطابقة للبحث
                     </p>
                 ) : (
-                    <div className="articles-list">
-                        {articles.map((article) => (
-                            <article key={article.id} className="article-card">
-                                <div className="article-content">
-                                    <h3>{article.title}</h3>
-                                    <div className="article-meta">
-                                        <span>{new Date(article.published_date).toLocaleDateString('ar-SA')}</span>
-                                        <span>•</span>
-                                        <span>{article.author}</span>
-                                    </div>
-                                    <p>{article.excerpt || article.content?.substring(0, 150) + '...'}</p>
-                                    {article.type === 'pdf' ? (
-                                        <a
-                                            href={article.pdf_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="read-more"
-                                        >
-                                            فتح ملف PDF <ExternalLink size={16} />
-                                        </a>
-                                    ) : (
-                                        <button className="read-more" onClick={() => openArticle(article)}>
-                                            اقرأ المزيد <ArrowLeft size={16} />
-                                        </button>
+                    <>
+                        <div className="articles-list">
+                            {articles.map((article) => (
+                                <article key={article.id} className="article-card">
+                                    {article.cover_url && (
+                                        <div className="article-cover">
+                                            <img src={article.cover_url} alt={article.title} loading="lazy" />
+                                        </div>
                                     )}
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                                    <div className="article-content">
+                                        {article.category && (
+                                            <span className="category-chip">{categoryLabel(article.category)}</span>
+                                        )}
+                                        <h3>{article.title}</h3>
+                                        <div className="article-meta">
+                                            {article.published_date && (
+                                                <span>
+                                                    <Calendar size={14} />{' '}
+                                                    {new Date(article.published_date).toLocaleDateString('ar-EG')}
+                                                </span>
+                                            )}
+                                            {article.author && (
+                                                <span>
+                                                    <User size={14} /> {article.author}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p>{article.excerpt || article.content?.replace(/<[^>]*>/g, '').substring(0, 150) + '...'}</p>
+                                        {article.pdf_url ? (
+                                            <a
+                                                href={article.pdf_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="read-more"
+                                            >
+                                                فتح ملف PDF <ExternalLink size={16} />
+                                            </a>
+                                        ) : (
+                                            <button className="read-more" onClick={() => openArticle(article)}>
+                                                اقرأ المزيد <ArrowLeft size={16} />
+                                            </button>
+                                        )}
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <ShareButtons
+                                                url={article.pdf_url || window.location.href}
+                                                title={article.title}
+                                                quote={article.excerpt}
+                                                compact
+                                            />
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+
+                        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                    </>
                 )}
             </div>
 
-            {/* Article Modal */}
             {selectedArticle && (
                 <div className="article-modal" onClick={closeArticle}>
                     <div className="article-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -146,15 +151,38 @@ const Articles = () => {
                             <X size={24} />
                         </button>
                         <div className="modal-header">
+                            {selectedArticle.cover_url && (
+                                <img className="modal-cover" src={selectedArticle.cover_url} alt="" />
+                            )}
+                            {selectedArticle.category && (
+                                <span className="category-chip">
+                                    {categoryLabel(selectedArticle.category)}
+                                </span>
+                            )}
                             <h2>{selectedArticle.title}</h2>
                             <div className="article-meta">
-                                <span>{new Date(selectedArticle.published_date).toLocaleDateString('ar-SA')}</span>
-                                <span>•</span>
-                                <span>{selectedArticle.author}</span>
+                                {selectedArticle.published_date && (
+                                    <span>
+                                        <Calendar size={14} />{' '}
+                                        {new Date(selectedArticle.published_date).toLocaleDateString('ar-EG')}
+                                    </span>
+                                )}
+                                {selectedArticle.author && (
+                                    <span>
+                                        <User size={14} /> {selectedArticle.author}
+                                    </span>
+                                )}
                             </div>
                         </div>
-                        <div className="modal-body">
-                            <p style={{ whiteSpace: 'pre-wrap' }}>{selectedArticle.content}</p>
+                        <div
+                            className="modal-body article-rich"
+                            dangerouslySetInnerHTML={{ __html: selectedArticle.content || '' }}
+                        />
+                        <div className="modal-footer">
+                            <ShareButtons
+                                title={selectedArticle.title}
+                                quote={selectedArticle.excerpt}
+                            />
                         </div>
                     </div>
                 </div>

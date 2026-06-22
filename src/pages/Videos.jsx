@@ -1,105 +1,123 @@
 import React, { useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
-import localVideo1 from '../assets/videos/بوصله الداخليه.mp4';
-import localVideo2 from '../assets/videos/فلسطين.mp4';
+import SEO from '../components/SEO';
+import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination';
+import ShareButtons from '../components/ShareButtons';
+import { CardGridSkeleton } from '../components/Skeleton';
+import { categoryLabel } from '../constants/categories';
 import './Videos.css';
-
-const localVideos = [
-    {
-        id: 'local-video-1',
-        title: 'بوصلة الداخلية',
-        video_url: localVideo1,
-        type: 'local',
-    },
-    {
-        id: 'local-video-2',
-        title: 'فلسطين',
-        video_url: localVideo2,
-        type: 'local',
-    },
-];
 
 const Videos = () => {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [search, setSearch] = useState('');
+    const [category, setCategory] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        fetchVideos();
-    }, []);
+        const t = setTimeout(() => setPage(1), 400);
+        return () => clearTimeout(t);
+    }, [search, category]);
 
-    const fetchVideos = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/videos`);
-            const data = await response.json();
-            if (Array.isArray(data) && data.length > 0) {
-                setVideos([...localVideos, ...data]);
-            } else {
-                setVideos(localVideos);
+    useEffect(() => {
+        const controller = new AbortController();
+        const load = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams({ page, limit: 12 });
+                if (search) params.set('search', search);
+                if (category) params.set('category', category);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/videos?${params}`, {
+                    signal: controller.signal,
+                });
+                const json = await response.json();
+                const rows = Array.isArray(json) ? json : json.data || [];
+                setVideos(rows);
+                setTotalPages(json.pagination?.totalPages || 1);
+            } catch (err) {
+                if (err.name !== 'AbortError') setVideos([]);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error('Error fetching videos:', error);
-            setVideos(localVideos);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        load();
+        return () => controller.abort();
+    }, [page, search, category]);
 
-    if (loading) {
-        return (
-            <div className="videos-page">
-                <div className="container">
-                    <div className="section-title">
-                        <h1>الفيديوهات</h1>
-                    </div>
-                    <p style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</p>
-                </div>
-            </div>
-        );
-    }
+    const closeModal = () => setSelectedVideo(null);
 
     return (
         <div className="videos-page">
+            <SEO
+                title="الفيديوهات"
+                description="الفيديوهات العلمية والمقاطع المرئية لمشروع إضاءات الشرعي الإصلاحي."
+                keywords="فيديوهات إسلامية, مقاطع علمية, إضاءات"
+            />
             <div className="container">
                 <div className="section-title">
                     <h1>الفيديوهات</h1>
                 </div>
 
-                {videos.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-                        لا توجد فيديوهات متاحة حالياً
+                <SearchBar
+                    search={search}
+                    onSearchChange={setSearch}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    placeholder="ابحث في الفيديوهات..."
+                />
+
+                {loading ? (
+                    <CardGridSkeleton count={6} />
+                ) : videos.length === 0 ? (
+                    <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
+                        لا توجد فيديوهات مطابقة للبحث
                     </p>
                 ) : (
-                    <div className="videos-grid">
-                        {videos.map((video) => (
-                            <div key={video.id} className="video-card" onClick={() => setSelectedVideo(video)}>
-                                <div className="video-thumbnail">
-                                    {video.thumbnail_url ? (
-                                        <img src={video.thumbnail_url} alt={video.title} />
-                                    ) : (
-                                        <div className="video-thumbnail-placeholder">
-                                            <span>VIDEO</span>
-                                            <p>{video.title}</p>
+                    <>
+                        <div className="videos-grid">
+                            {videos.map((video) => (
+                                <div key={video.id} className="video-card" onClick={() => setSelectedVideo(video)}>
+                                    <div className="video-thumbnail">
+                                        {video.thumbnail_url ? (
+                                            <img src={video.thumbnail_url} alt={video.title} />
+                                        ) : video.youtube_id ? (
+                                            <img
+                                                src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
+                                                alt={video.title}
+                                            />
+                                        ) : (
+                                            <div className="video-thumbnail-placeholder">
+                                                <span>VIDEO</span>
+                                                <p>{video.title}</p>
+                                            </div>
+                                        )}
+                                        <div className="play-button">
+                                            <Play size={32} fill="currentColor" />
                                         </div>
-                                    )}
-                                    <div className="play-button">
-                                        <Play size={32} fill="currentColor" />
+                                        {video.duration && <span className="duration">{video.duration}</span>}
                                     </div>
-                                    {video.duration && <span className="duration">{video.duration}</span>}
+                                    <div className="video-info">
+                                        {video.category && (
+                                            <span className="category-chip">{categoryLabel(video.category)}</span>
+                                        )}
+                                        <h3>{video.title}</h3>
+                                    </div>
                                 </div>
-                                <div className="video-info">
-                                    <h3>{video.title}</h3>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+
+                        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                    </>
                 )}
 
                 {selectedVideo && (
-                    <div className="video-modal" onClick={() => setSelectedVideo(null)}>
+                    <div className="video-modal" onClick={closeModal}>
                         <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
-                            <button className="close-button" onClick={() => setSelectedVideo(null)}>×</button>
-                            {selectedVideo.type === 'local' ? (
+                            <button className="close-button" onClick={closeModal}>×</button>
+                            {selectedVideo.video_url ? (
                                 <video
                                     width="100%"
                                     height="100%"
@@ -117,8 +135,19 @@ const Videos = () => {
                                     frameBorder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
-                                ></iframe>
+                                />
                             )}
+                            <div className="video-modal-footer">
+                                <ShareButtons
+                                    title={selectedVideo.title}
+                                    url={
+                                        selectedVideo.youtube_id
+                                            ? `https://youtu.be/${selectedVideo.youtube_id}`
+                                            : undefined
+                                    }
+                                    compact
+                                />
+                            </div>
                         </div>
                     </div>
                 )}

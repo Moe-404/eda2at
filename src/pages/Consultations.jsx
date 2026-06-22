@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Stethoscope, Send } from 'lucide-react';
+import SEO from '../components/SEO';
 import './Consultations.css';
 
 const Consultations = () => {
@@ -46,6 +47,11 @@ const Consultations = () => {
 
     return (
         <div className="consultations-page">
+            <SEO
+                title="الاستشارات"
+                description="استشارات أسرية وطبية مجانية ضمن مشروع إضاءات، بإشراف نخبة من أهل الاختصاص."
+                keywords="استشارات أسرية, استشارات طبية, استشارات شرعية, إضاءات"
+            />
             <div className="container">
                 <div className="section-title">
                     <h1>الاستشارات</h1>

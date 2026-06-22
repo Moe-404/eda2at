@@ -1,8 +1,68 @@
 .admin-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ─── Shared form styles used by all admin pages ─── */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--color-text);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="email"],
+.form-group input[type="url"],
+.form-group textarea,
+.form-group select {
+    padding: 0.6rem 0.85rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(4, 77, 41, 0.08);
+}
+
+.form-group input[type="file"] {
+    padding: 0.45rem 0;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--color-text);
+    width: 100%;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
 }
 
 .form-card {
@@ -89,4 +149,27 @@
 
 .action-btn.delete:hover {
     background-color: rgba(220, 38, 38, 0.1);
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+}
+
+.status-published {
+    color: #047857;
+    background: rgba(4, 120, 87, 0.12);
+}
+
+.status-draft {
+    color: #b45309;
+    background: rgba(180, 83, 9, 0.14);
+}
+
+.status-archived {
+    color: #6b7280;
+    background: rgba(107, 114, 128, 0.14);
 }

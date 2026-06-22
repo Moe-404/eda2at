@@ -1,21 +1,31 @@
 /* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700;900&display=swap');
 
 :root {
-  /* Colors */
+  /* Brand Colors */
   --color-primary: #044d29; /* Emerald Green */
   --color-primary-dark: #022c18;
   --color-accent: #c5a059; /* Gold */
   --color-accent-light: #e6c88a;
-  --color-bg: #fcfbf7; /* Cream/Off-white */
+
+  /* Surface Colors (theme-aware) */
+  --color-bg: #fcfbf7;
   --color-bg-secondary: #f0efe9;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #e5e4de;
   --color-text: #1f2937;
   --color-text-light: #4b5563;
   --color-white: #ffffff;
+  --color-overlay: rgba(0, 0, 0, 0.04);
 
   /* Typography */
-  --font-heading: 'Amiri', serif;
-  --font-body: 'Cairo', sans-serif;
+  --font-heading: 'Amiri', 'Traditional Arabic', serif;
+  --font-body: 'Tajawal', 'Cairo', system-ui, sans-serif;
+  --font-quran: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+
+  /* Dynamic text scale (controlled by data-font-size) */
+  --text-scale: 1;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -36,25 +46,65 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+/* Dark theme */
+html[data-theme='dark'] {
+  --color-bg: #0d1411;
+  --color-bg-secondary: #101c17;
+  --color-surface: #152721;
+  --color-surface-raised: #1a2e27;
+  --color-border: #25463b;
+  --color-text: #ecf0ed;
+  --color-text-light: #b4c0ba;
+  --color-overlay: rgba(255, 255, 255, 0.04);
+  --color-primary: #1f8f5d;
+  --color-primary-dark: #156f47;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+}
+
+/* Font size variants (controlled via ThemeContext) */
+html[data-font-size='sm'] { --text-scale: 0.92; }
+html[data-font-size='md'] { --text-scale: 1; }
+html[data-font-size='lg'] { --text-scale: 1.1; }
+html[data-font-size='xl'] { --text-scale: 1.22; }
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  font-size: calc(16px * var(--text-scale));
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-bg);
   color: var(--color-text);
-  line-height: 1.6;
-  direction: rtl; /* RTL for Arabic */
+  line-height: 1.7;
+  direction: rtl;
   text-align: right;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-primary);
-  line-height: 1.2;
+  line-height: 1.25;
+}
+
+html[data-theme='dark'] h1,
+html[data-theme='dark'] h2,
+html[data-theme='dark'] h3,
+html[data-theme='dark'] h4,
+html[data-theme='dark'] h5,
+html[data-theme='dark'] h6 {
+  color: var(--color-accent-light);
 }
 
 a {
@@ -70,7 +120,7 @@ button {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 clamp(1rem, 4vw, 2rem);
 }
 
 .btn {
@@ -102,6 +152,11 @@ button {
 
 .btn-accent:hover {
   background-color: var(--color-accent-light);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .section-title {
@@ -136,3 +191,34 @@ button {
   pointer-events: none;
   z-index: -1;
 }
+
+/* Focus ring - a11y */
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* btn-secondary-outline */
+.btn-secondary-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+.btn-secondary-outline:hover {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* section spacing responsive */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Scrollbar */
+html[data-theme='dark'] ::-webkit-scrollbar-thumb { background: #25463b; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d6d2c4; border-radius: 5px; }

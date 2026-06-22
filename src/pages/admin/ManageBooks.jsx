@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../../utils/api';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { CATEGORIES, categoryLabel } from '../../constants/categories';
 import './ManageBooks.css';
 
 const ManageBooks = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingBook, setEditingBook] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         author: '',
         description: '',
-        cover_url: '',
-        pdf_url: ''
+        category: '',
     });
+    const [pdfFile, setPdfFile] = useState(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchBooks();
@@ -22,8 +25,8 @@ const ManageBooks = () => {
 
     const fetchBooks = async () => {
         try {
-            const response = await api.get('/books');
-            setBooks(response.data);
+            const response = await api.get('/books?limit=50');
+            setBooks(response.data.data || response.data || []);
         } catch (error) {
             console.error('Error fetching books:', error);
         } finally {
@@ -33,17 +36,43 @@ const ManageBooks = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!editingBook && !pdfFile) {
+            alert('يرجى اختيار ملف PDF للكتاب');
+            return;
+        }
+
+        const payload = new FormData();
+        payload.append('title', formData.title);
+        payload.append('author', formData.author);
+        payload.append('description', formData.description);
+        payload.append('category', formData.category || '');
+        if (pdfFile) {
+            payload.append('pdf', pdfFile);
+        }
+
+        setSubmitting(true);
         try {
             if (editingBook) {
-                await api.put(`/books/${editingBook.id}`, formData);
+                await api.put(`/books/${editingBook.id}`, payload, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
             } else {
-                await api.post('/books', formData);
+                await api.post('/books', payload, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
             }
             fetchBooks();
             resetForm();
         } catch (error) {
             console.error('Error saving book:', error);
-            alert('فشل حفظ الكتاب');
+            const details = error.response?.data?.errors
+                ?.map((e) => e.msg || e.message)
+                .join('\n');
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حفظ الكتاب${details ? `:\n${details}` : serverMsg ? `: ${serverMsg}` : ''}`);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -64,14 +93,17 @@ const ManageBooks = () => {
             title: book.title,
             author: book.author,
             description: book.description || '',
-            cover_url: book.cover_url || '',
-            pdf_url: book.pdf_url || ''
+            category: book.category || '',
         });
+        setPdfFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setShowForm(true);
     };
 
     const resetForm = () => {
-        setFormData({ title: '', author: '', description: '', cover_url: '', pdf_url: '' });
+        setFormData({ title: '', author: '', description: '', category: '' });
+        setPdfFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setEditingBook(null);
         setShowForm(false);
     };
@@ -114,6 +146,18 @@ const ManageBooks = () => {
                             />
                         </div>
                         <div className="form-group">
+                            <label>التصنيف</label>
+                            <select
+                                value={formData.category}
+                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            >
+                                <option value="">— بدون تصنيف —</option>
+                                {CATEGORIES.map((c) => (
+                                    <option key={c.value} value={c.value}>{c.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
                             <label>الوصف</label>
                             <textarea
                                 rows="3"
@@ -122,24 +166,32 @@ const ManageBooks = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>رابط الغلاف</label>
+                            <label>
+                                ملف PDF {editingBook ? '(اختياري - اتركه فارغاً للإبقاء على الملف الحالي)' : '*'}
+                            </label>
                             <input
-                                type="url"
-                                value={formData.cover_url}
-                                onChange={(e) => setFormData({ ...formData, cover_url: e.target.value })}
+                                ref={fileInputRef}
+                                type="file"
+                                accept="application/pdf,.pdf"
+                                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                                required={!editingBook}
                             />
-                        </div>
-                        <div className="form-group">
-                            <label>رابط ملف PDF</label>
-                            <input
-                                type="url"
-                                value={formData.pdf_url}
-                                onChange={(e) => setFormData({ ...formData, pdf_url: e.target.value })}
-                            />
+                            {editingBook?.pdf_url && !pdfFile && (
+                                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#666' }}>
+                                    الملف الحالي:{' '}
+                                    <a href={editingBook.pdf_url} target="_blank" rel="noopener noreferrer">
+                                        عرض PDF
+                                    </a>
+                                </p>
+                            )}
                         </div>
                         <div className="form-actions">
-                            <button type="submit" className="btn btn-primary">حفظ</button>
-                            <button type="button" onClick={resetForm} className="btn btn-secondary">إلغاء</button>
+                            <button type="submit" className="btn btn-primary" disabled={submitting}>
+                                {submitting ? 'جارٍ الحفظ...' : 'حفظ'}
+                            </button>
+                            <button type="button" onClick={resetForm} className="btn btn-secondary" disabled={submitting}>
+                                إلغاء
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -151,6 +203,7 @@ const ManageBooks = () => {
                         <tr>
                             <th>العنوان</th>
                             <th>المؤلف</th>
+                            <th>التصنيف</th>
                             <th>التاريخ</th>
                             <th>إجراءات</th>
                         </tr>
@@ -160,7 +213,8 @@ const ManageBooks = () => {
                             <tr key={book.id}>
                                 <td>{book.title}</td>
                                 <td>{book.author}</td>
-                                <td>{new Date(book.created_at).toLocaleDateString('ar-SA')}</td>
+                                <td>{book.category ? categoryLabel(book.category) : '—'}</td>
+                                <td>{new Date(book.created_at).toLocaleDateString('ar-EG')}</td>
                                 <td>
                                     <div className="table-actions">
                                         <button onClick={() => startEdit(book)} className="action-btn edit">

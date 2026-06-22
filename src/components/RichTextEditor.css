@@ -1,0 +1,142 @@
+.rte {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  direction: ltr;
+}
+
+.rte-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.rte-btn:hover:not(:disabled) {
+  background: var(--color-overlay);
+}
+
+.rte-btn.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.rte-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rte-btn-label {
+  font-weight: 600;
+}
+
+.rte-divider {
+  width: 1px;
+  background: var(--color-border);
+  margin: 0 0.25rem;
+  align-self: stretch;
+}
+
+.rte-content {
+  padding: 1rem 1.25rem;
+  min-height: 320px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--color-text);
+  direction: rtl;
+  text-align: right;
+}
+
+.rte-content .ProseMirror {
+  outline: none;
+  min-height: 300px;
+}
+
+.rte-content .ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--color-text-light);
+  content: attr(data-placeholder);
+  float: right;
+  height: 0;
+  pointer-events: none;
+}
+
+.rte-content h2,
+.rte-content h3 {
+  margin: 1.25rem 0 0.6rem;
+  color: var(--color-primary);
+}
+
+.rte-content ul,
+.rte-content ol {
+  padding-inline-start: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.rte-content blockquote {
+  margin: 1rem 0;
+  padding: 1rem 1.25rem;
+  border-inline-start: 4px solid var(--color-accent);
+  background: rgba(197, 160, 89, 0.08);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+}
+
+.rte-content blockquote.ayah {
+  font-family: var(--font-quran);
+  font-size: 1.2em;
+  line-height: 2;
+  background: linear-gradient(135deg, rgba(4,77,41,0.06), rgba(197,160,89,0.12));
+  border-inline-start-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  text-align: center;
+}
+
+html[data-theme='dark'] .rte-content blockquote.ayah {
+  color: var(--color-accent-light);
+  background: linear-gradient(135deg, rgba(31,143,93,0.12), rgba(197,160,89,0.1));
+}
+
+.rte-content blockquote.hadith {
+  font-family: var(--font-heading);
+  background: rgba(197, 160, 89, 0.12);
+}
+
+.rte-content img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  display: block;
+  margin: 1rem auto;
+}
+
+.rte-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rte-content hr {
+  border: 0;
+  border-top: 2px dashed var(--color-border);
+  margin: 1.5rem 0;
+}

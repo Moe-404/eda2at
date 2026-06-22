@@ -1,109 +1,128 @@
 import React, { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
-import bookPdf1 from '../assets/books/سبيل المقتصد إلي فقه أصول المعلوم من الدين بالضرورة.pdf';
-import bookPdf2 from '../assets/books/سبيل البيت المسلم إلي معرفة ألمعلوم من الدين بالضرورة.pdf';
-import bookPdf3 from '../assets/books/سبيل أهل القرآن والمحراب إلي معرفة بصيرة المعلوم من الدين بالضرورة2.pdf';
+import SEO from '../components/SEO';
+import ShareButtons from '../components/ShareButtons';
+import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination';
+import { CardGridSkeleton } from '../components/Skeleton';
+import { categoryLabel } from '../constants/categories';
 import './Books.css';
-
-const localBooks = [
-    {
-        id: 'local-book-1',
-        title: 'سبيل المقتصد إلي فقه أصول المعلوم من الدين بالضرورة',
-        author: 'أ/ خالد مصطفى محمود',
-        description: 'كتاب في فقه أصول المعلوم من الدين بالضرورة، يقدّم معالجة منهجية واضحة للقضايا الأساسية.',
-        pdf_url: bookPdf1,
-    },
-    {
-        id: 'local-book-2',
-        title: 'سبيل البيت المسلم إلي معرفة ألمعلوم من الدين بالضرورة',
-        author: 'أ/ خالد مصطفى محمود',
-        description: 'كتاب موجّه للأسرة المسلمة لبناء معرفة شرعية راسخة في قضايا المعلوم من الدين بالضرورة.',
-        pdf_url: bookPdf2,
-    },
-    {
-        id: 'local-book-3',
-        title: 'سبيل أهل القرآن والمحراب إلي معرفة بصيرة المعلوم من الدين بالضرورة',
-        author: 'أ/ خالد مصطفى محمود',
-        description: 'كتاب يركّز على تعميق البصيرة الشرعية لدى أهل القرآن والمحراب بمنهج إصلاحي متوازن.',
-        pdf_url: bookPdf3,
-    },
-];
 
 const Books = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [category, setCategory] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        fetchBooks();
-    }, []);
+        const t = setTimeout(() => { setPage(1); }, 400);
+        return () => clearTimeout(t);
+    }, [search, category]);
 
-    const fetchBooks = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/books`);
-            const data = await response.json();
-            if (Array.isArray(data) && data.length > 0) {
-                setBooks([...localBooks, ...data]);
-            } else {
-                setBooks(localBooks);
+    useEffect(() => {
+        const controller = new AbortController();
+        const load = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams({ page, limit: 12 });
+                if (search) params.set('search', search);
+                if (category) params.set('category', category);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/books?${params}`, {
+                    signal: controller.signal,
+                });
+                const json = await response.json();
+                const rows = Array.isArray(json) ? json : json.data || [];
+                setBooks(rows);
+                setTotalPages(json.pagination?.totalPages || 1);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error fetching books:', err);
+                    setBooks([]);
+                }
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error('Error fetching books:', error);
-            setBooks(localBooks);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="books-page">
-                <div className="container">
-                    <div className="section-title">
-                        <h1>مكتبة الكتب</h1>
-                    </div>
-                    <p style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</p>
-                </div>
-            </div>
-        );
-    }
+        };
+        load();
+        return () => controller.abort();
+    }, [page, search, category]);
 
     return (
         <div className="books-page">
+            <SEO
+                title="مكتبة الكتب"
+                description="مكتبة الكتب الشرعية الإصلاحية في مشروع إضاءات."
+                keywords="كتب إسلامية, مكتبة شرعية, كتب pdf, إضاءات"
+            />
             <div className="container">
                 <div className="section-title">
                     <h1>مكتبة الكتب</h1>
                 </div>
 
-                {books.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-                        لا توجد كتب متاحة حالياً
+                <SearchBar
+                    search={search}
+                    onSearchChange={setSearch}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    placeholder="ابحث عن كتاب أو مؤلف..."
+                />
+
+                {loading ? (
+                    <CardGridSkeleton count={6} />
+                ) : books.length === 0 ? (
+                    <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
+                        لا توجد كتب مطابقة للبحث
                     </p>
                 ) : (
-                    <div className="books-grid">
-                        {books.map((book) => (
-                            <div key={book.id} className="book-card">
-                                <div className="book-cover">
-                                    {book.cover_url ? (
-                                        <img src={book.cover_url} alt={book.title} />
-                                    ) : (
-                                        <div className="book-cover-placeholder">
-                                            <span>PDF</span>
-                                            <p>{book.title}</p>
+                    <>
+                        <div className="books-grid">
+                            {books.map((book) => (
+                                <div key={book.id} className="book-card">
+                                    <div className="book-cover">
+                                        {book.cover_url ? (
+                                            <img src={book.cover_url} alt={book.title} />
+                                        ) : (
+                                            <div className="book-cover-placeholder">
+                                                <span>PDF</span>
+                                                <p>{book.title}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="book-info">
+                                        {book.category && (
+                                            <span className="category-chip">{categoryLabel(book.category)}</span>
+                                        )}
+                                        <h3>{book.title}</h3>
+                                        <p className="author">{book.author}</p>
+                                        <p className="description">{book.description}</p>
+                                        {book.pdf_url && (
+                                            <a
+                                                href={book.pdf_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-primary full-width"
+                                            >
+                                                <Download size={18} />
+                                                تحميل الكتاب (PDF)
+                                            </a>
+                                        )}
+                                        <div className="book-share">
+                                            <ShareButtons
+                                                url={book.pdf_url}
+                                                title={book.title}
+                                                quote={`كتاب: ${book.title} — ${book.author}`}
+                                                compact
+                                            />
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                                <div className="book-info">
-                                    <h3>{book.title}</h3>
-                                    <p className="author">{book.author}</p>
-                                    <p className="description">{book.description}</p>
-                                    <a href={book.pdf_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary full-width">
-                                        <Download size={18} />
-                                        تحميل الكتاب (PDF)
-                                    </a>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+
+                        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                    </>
                 )}
             </div>
         </div>

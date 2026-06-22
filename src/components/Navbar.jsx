@@ -10,6 +10,7 @@ const Navbar = () => {
 
     const navItems = [
         { name: 'الرئيسية', path: '/' },
+        { name: 'من نحن', path: '/about' },
         { name: 'الكتب', path: '/books' },
         { name: 'الإضاءات', path: '/articles' },
         { name: 'الفيديوهات', path: '/videos' },

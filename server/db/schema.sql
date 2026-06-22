@@ -67,12 +67,66 @@ CREATE TABLE IF NOT EXISTS contacts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Add category/status/slug/cover columns (idempotent)
+ALTER TABLE books ADD COLUMN IF NOT EXISTS category VARCHAR(60);
+ALTER TABLE books ADD COLUMN IF NOT EXISTS slug VARCHAR(255);
+
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS category VARCHAR(60);
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS slug VARCHAR(255);
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS cover_url VARCHAR(500);
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'published'; -- 'draft' | 'published' | 'archived'
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS pdf_url VARCHAR(500);
+
+ALTER TABLE videos ADD COLUMN IF NOT EXISTS video_url VARCHAR(500);
+
+ALTER TABLE videos ADD COLUMN IF NOT EXISTS category VARCHAR(60);
+
+-- Team departments (org tree sections)
+CREATE TABLE IF NOT EXISTS team_departments (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    display_order INTEGER DEFAULT 0
+);
+
+-- Team members
+CREATE TABLE IF NOT EXISTS team_members (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL DEFAULT '',
+    department_id INTEGER REFERENCES team_departments(id) ON DELETE SET NULL,
+    photo_url VARCHAR(500),
+    short_bio TEXT DEFAULT '',
+    full_bio TEXT DEFAULT '',
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed default departments
+INSERT INTO team_departments (title, display_order) VALUES
+    ('بناء المادة العلمية', 1),
+    ('المستشار القانوني', 2),
+    ('التدقيق العلمي', 3),
+    ('التدقيق اللغوي', 4),
+    ('الفهرس والتنسيق', 5),
+    ('التصاميم والإعلام', 6),
+    ('البرمجيات', 7),
+    ('السوشيال ميديا', 8),
+    ('الخدمات المساندة', 9)
+ON CONFLICT DO NOTHING;
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_books_category ON books(category);
 CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles(published_date DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
+CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_videos_created_at ON videos(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_videos_category ON videos(category);
 CREATE INDEX IF NOT EXISTS idx_consultations_created_at ON consultations(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_team_members_dept ON team_members(department_id);
+CREATE INDEX IF NOT EXISTS idx_team_departments_order ON team_departments(display_order);
 
 -- Insert default admin user (password: admin123)
 -- Password hash is bcrypt hash of 'admin123'

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import SEO from '../components/SEO';
 import './Contact.css';
 
 const Contact = () => {
@@ -41,6 +42,11 @@ const Contact = () => {
 
     return (
         <div className="contact-page">
+            <SEO
+                title="تواصل معنا"
+                description="تواصل مع فريق مشروع إضاءات: استفسارات واقتراحات وتعاون."
+                keywords="تواصل, إضاءات, استفسارات"
+            />
             <div className="container">
                 <div className="section-title">
                     <h1>تواصل معنا</h1>

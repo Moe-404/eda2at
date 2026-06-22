@@ -1,0 +1,86 @@
+.share-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.share-label {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  font-weight: 600;
+  padding-inline: 0.35rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-overlay);
+  color: var(--brand, var(--color-primary));
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.share-btn:hover {
+  background: var(--brand, var(--color-primary));
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.share-btn.copy {
+  color: var(--color-text);
+}
+
+.share-btn.copy:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.share-btn.copied {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.share-btn.native {
+  color: var(--color-accent);
+}
+
+.share-btn.native:hover {
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+}
+
+html[data-theme='dark'] .share-btn.copy {
+  color: var(--color-text);
+}
+
+.share-buttons.compact {
+  gap: 0.3rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.share-buttons.compact .share-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.share-buttons.compact .share-label {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .share-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+}

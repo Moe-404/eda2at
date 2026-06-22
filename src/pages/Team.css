@@ -191,6 +191,79 @@
     margin-bottom: 0.45rem;
 }
 
+/* Default avatar when no photo */
+.default-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    border: 2px solid var(--color-accent);
+    flex-shrink: 0;
+}
+
+.member-profile .default-avatar {
+    width: 110px;
+    height: 110px;
+    font-size: 2.4rem;
+    border-width: 3px;
+}
+
+.empty-branch {
+    padding: 1rem;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Rich bio content rendered from HTML */
+.bio-content.prose {
+    line-height: 1.9;
+    color: var(--color-text);
+}
+
+.bio-content.prose h1,
+.bio-content.prose h2,
+.bio-content.prose h3,
+.bio-content.prose h4 {
+    color: var(--color-primary);
+    margin: 1.25rem 0 0.6rem;
+}
+
+.bio-content.prose p {
+    margin-bottom: 0.85rem;
+}
+
+.bio-content.prose ul,
+.bio-content.prose ol {
+    padding-right: 1.3rem;
+    margin-bottom: 0.85rem;
+}
+
+.bio-content.prose li {
+    margin-bottom: 0.4rem;
+}
+
+.bio-content.prose strong {
+    color: var(--color-primary);
+}
+
+html[data-theme='dark'] .bio-content.prose strong {
+    color: var(--color-accent-light);
+}
+
+.team-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text-light);
+}
+
 @media (max-width: 768px) {
     .team-page {
         padding: 2.5rem 0;

@@ -9,12 +9,12 @@
 }
 
 .book-card {
-    background-color: var(--color-white);
+    background-color: var(--color-surface);
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-md);
     transition: transform 0.2s ease;
-    border: 1px solid var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
 }
 
 .book-card:hover {
@@ -100,4 +100,26 @@
 
 .full-width {
     width: 100%;
+}
+
+.book-share {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: center;
+}
+
+.category-chip {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: rgba(4, 77, 41, 0.08);
+    border-radius: var(--radius-full);
+    margin-bottom: 0.5rem;
+}
+
+html[data-theme='dark'] .category-chip {
+    color: var(--color-accent-light);
+    background: rgba(31, 143, 93, 0.16);
 }
