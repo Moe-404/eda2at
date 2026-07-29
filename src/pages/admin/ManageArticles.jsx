@@ -97,6 +97,8 @@ const ManageArticles = () => {
             fetchArticles();
         } catch (error) {
             console.error('Error deleting article:', error);
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حذف المقال: ${serverMsg || error.message || 'خطأ غير معروف'}`);
         }
     };
 

@@ -30,7 +30,8 @@ const Videos = () => {
                 const params = new URLSearchParams({ page, limit: 12 });
                 if (search) params.set('search', search);
                 if (category) params.set('category', category);
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/videos?${params}`, {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                const response = await fetch(`${apiUrl}/videos?${params}`, {
                     signal: controller.signal,
                 });
                 const json = await response.json();

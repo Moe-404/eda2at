@@ -11,7 +11,9 @@ import './App.css';
 // Public pages (preloaded eagerly for Home, lazy for the rest)
 import Home from './pages/Home';
 const Books = lazy(() => import('./pages/Books'));
+const BookDetails = lazy(() => import('./pages/BookDetails'));
 const Articles = lazy(() => import('./pages/Articles'));
+const ArticleDetails = lazy(() => import('./pages/ArticleDetails'));
 const Videos = lazy(() => import('./pages/Videos'));
 const Consultations = lazy(() => import('./pages/Consultations'));
 const QuranProject = lazy(() => import('./pages/QuranProject'));
@@ -60,7 +62,9 @@ function App() {
                                     <Route element={<Layout />}>
                                         <Route path="/" element={<Home />} />
                                         <Route path="/books" element={<Books />} />
+                                        <Route path="/books/:id" element={<BookDetails />} />
                                         <Route path="/articles" element={<Articles />} />
+                                        <Route path="/articles/:id" element={<ArticleDetails />} />
                                         <Route path="/videos" element={<Videos />} />
                                         <Route path="/consultations" element={<Consultations />} />
                                         <Route path="/quran" element={<QuranProject />} />

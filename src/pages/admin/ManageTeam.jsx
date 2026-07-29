@@ -72,7 +72,8 @@ const MembersTab = ({ departments }) => {
             await api.delete(`/team/members/${id}`);
             fetchMembers();
         } catch (err) {
-            alert('فشل الحذف');
+            const serverMsg = err.response?.data?.error;
+            alert(`فشل حذف العضو: ${serverMsg || err.message || 'خطأ غير معروف'}`);
         }
     };
 

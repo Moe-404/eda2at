@@ -1,54 +1,74 @@
-# Sabeel Al-Eda'at - Islamic Website
+# Sabeel Al-Eda'at
 
-A modern Islamic website featuring books, articles, videos, and consultation services.
+Sabeel Al-Eda'at is a modern Arabic Islamic web platform for publishing books, articles, videos, and consultation services. It combines a public-facing website with an admin dashboard for managing content and customer requests.
 
-## Features
+## Overview
 
-- 📚 **Book Library** - Browse and download Islamic books
-- 📝 **Articles** - Read Islamic articles and insights
-- 🎥 **Videos** - Watch Islamic educational videos
-- 💬 **Consultations** - Request family and medical consultations
-- 📧 **Contact** - Get in touch with the team
-- 🔐 **Admin Panel** - Manage all content
+This project provides:
+
+- A responsive public website for browsing Islamic content
+- An administrative area for managing books, articles, videos, consultations, contacts, and team information
+- A REST API for the frontend and admin operations
+- A containerized setup for local development and deployment
+
+## Main Features
+
+- 📚 Browse and view Islamic books with metadata and downloadable files
+- 📝 Read articles with rich content and category-based organization
+- 🎥 Watch educational videos linked through YouTube IDs
+- 💬 Submit family and medical consultation requests
+- 📩 Send contact messages to the organization
+- 👥 View team and department information
+- 🔐 Secure admin login and protected dashboard
+- 🧠 SEO-friendly pages with sitemap and robots support
 
 ## Tech Stack
 
-- **Frontend**: React + Vite
-- **Backend**: Node.js + Express
-- **Containerization**: Docker + Docker Compose
+- Frontend: React + Vite + React Router
+- Backend: Node.js + Express
+- Database: PostgreSQL
+- Authentication: JWT + bcrypt
+- Styling: CSS modules and custom components
+- Containerization: Docker + Docker Compose
 
-## Features
+## Project Structure
 
-- 📚 Books management (PDF downloads)
-- 📝 Articles/Illuminations
-- 🎥 Videos (YouTube embeds)
-- 💬 Consultations (Family & Medical)
-- ✉️ Contact forms
-- 🔐 Secure admin dashboard
-- 🐳 Fully containerized
+- Frontend: [src](src)
+- Backend API: [server](server)
+- Database schema: [server/db/schema.sql](server/db/schema.sql)
+- Docker setup: [docker-compose.yml](docker-compose.yml)
 
-## Quick Start with Docker
+## Prerequisites
+
+Before running the project, make sure you have:
+
+- Node.js 18+ recommended
+- PostgreSQL running locally or in Docker
+- npm
+
+## Running with Docker
 
 ```bash
-# Build and start all services
 docker-compose up --build
-
-# Access the application
-# Frontend: http://localhost
-# Backend API: http://localhost:5000
-# Database: localhost:5432
 ```
 
-## Development Setup
+Then open:
+
+- Frontend: http://localhost
+- Backend API: http://localhost:5000
+- Health check: http://localhost:5000/health
+
+## Running Locally
 
 ### Frontend
+
 ```bash
-cd /path/to/project
 npm install
 npm run dev
 ```
 
 ### Backend
+
 ```bash
 cd server
 npm install
@@ -56,31 +76,50 @@ npm run dev
 ```
 
 ### Database
+
+Import the SQL schema into PostgreSQL:
+
 ```bash
-# Make sure PostgreSQL is running
-# Run schema.sql to initialize
 psql -U postgres -d sabeel_db -f server/db/schema.sql
 ```
 
-## Admin Access
-
-- **URL**: http://localhost/admin/login
-- **Username**: admin
-- **Password**: admin123
-
 ## Environment Variables
 
-Copy `.env.example` and create `.env` file with your configuration:
+Create an environment file for the backend if needed. Typical variables include:
 
 ```env
-DB_HOST=db
+PORT=5000
+DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=sabeel_db
 DB_USER=postgres
 DB_PASSWORD=postgres
-JWT_SECRET=your-secret-key-change-this
+JWT_SECRET=change-this-secret
 ```
+
+## Admin Access
+
+Default admin credentials:
+
+- Username: admin
+- Password: admin123
+
+Access the admin login page at:
+
+- http://localhost/admin/login
+
+## API Overview
+
+The backend exposes REST endpoints under /api for:
+
+- Authentication
+- Books
+- Articles
+- Videos
+- Consultations
+- Contact messages
+- Team information
 
 ## License
 
-MIT
+This project is distributed under the MIT license.

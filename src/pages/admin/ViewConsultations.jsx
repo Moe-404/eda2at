@@ -32,6 +32,8 @@ const ViewConsultations = () => {
             setSelectedConsultation(null);
         } catch (error) {
             console.error('Error deleting consultation:', error);
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حذف الاستشارة: ${serverMsg || error.message || 'خطأ غير معروف'}`);
         }
     };
 

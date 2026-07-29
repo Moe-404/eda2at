@@ -130,6 +130,9 @@ router.post('/',
         body('author').trim().notEmpty().withMessage('Author is required'),
         body('description').optional({ checkFalsy: true }),
         body('category').optional({ checkFalsy: true }),
+        body('pages').optional({ checkFalsy: true }).isInt({ min: 0 }).toInt(),
+        body('publisher').optional().trim(),
+        body('language').optional().trim(),
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -142,15 +145,24 @@ router.post('/',
             return res.status(400).json({ error: 'يجب رفع ملف PDF للكتاب' });
         }
 
-        const { title, author, description, category } = req.body;
+        const { title, author, description, category, pages, publisher, language } = req.body;
         const pdfUrl = buildPublicPdfUrl(req, req.file.filename);
 
         try {
             const result = await pool.query(
-                `INSERT INTO books (title, author, description, pdf_url, category)
-                 VALUES ($1, $2, $3, $4, $5)
+                `INSERT INTO books (title, author, description, pdf_url, category, pages, publisher, language)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                  RETURNING *`,
-                [title, author, description || null, pdfUrl, category || null]
+                [
+                    title,
+                    author,
+                    description || null,
+                    pdfUrl,
+                    category || null,
+                    pages ? parseInt(pages, 10) : 0,
+                    publisher || 'دار نشر سبيل الإضاءات',
+                    language || 'العربية'
+                ]
             );
 
             res.status(201).json(result.rows[0]);
@@ -171,6 +183,9 @@ router.put('/:id',
         body('author').optional().trim().notEmpty(),
         body('description').optional({ checkFalsy: true }),
         body('category').optional({ checkFalsy: true }),
+        body('pages').optional({ checkFalsy: true }).isInt({ min: 0 }).toInt(),
+        body('publisher').optional().trim(),
+        body('language').optional().trim(),
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -180,7 +195,7 @@ router.put('/:id',
         }
 
         const { id } = req.params;
-        const { title, author, description, category } = req.body;
+        const { title, author, description, category, pages, publisher, language } = req.body;
         const newPdfUrl = req.file ? buildPublicPdfUrl(req, req.file.filename) : null;
 
         try {
@@ -197,10 +212,23 @@ router.put('/:id',
                      description = COALESCE($3, description),
                      category = COALESCE($4, category),
                      pdf_url = COALESCE($5, pdf_url),
+                     pages = COALESCE($6, pages),
+                     publisher = COALESCE($7, publisher),
+                     language = COALESCE($8, language),
                      updated_at = CURRENT_TIMESTAMP
-                 WHERE id = $6
+                 WHERE id = $9
                  RETURNING *`,
-                [title || null, author || null, description || null, category || null, newPdfUrl, id]
+                [
+                    title || null,
+                    author || null,
+                    description || null,
+                    category || null,
+                    newPdfUrl,
+                    pages !== undefined ? parseInt(pages, 10) : null,
+                    publisher !== undefined ? publisher : null,
+                    language !== undefined ? language : null,
+                    id
+                ]
             );
 
             if (newPdfUrl) deleteFileIfLocal(existing.rows[0].pdf_url);
@@ -230,6 +258,42 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     } catch (error) {
         console.error('Error deleting book:', error);
         res.status(500).json({ error: 'Failed to delete book' });
+    }
+});
+
+// Increment download count
+router.post('/:id/download', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            'UPDATE books SET download_count = COALESCE(download_count, 0) + 1 WHERE id = $1 RETURNING download_count',
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Book not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error incrementing download count:', error);
+        res.status(500).json({ error: 'Failed to update download count' });
+    }
+});
+
+// Increment reading count
+router.post('/:id/read', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            'UPDATE books SET reading_count = COALESCE(reading_count, 0) + 1 WHERE id = $1 RETURNING reading_count',
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Book not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error incrementing reading count:', error);
+        res.status(500).json({ error: 'Failed to update reading count' });
     }
 });
 

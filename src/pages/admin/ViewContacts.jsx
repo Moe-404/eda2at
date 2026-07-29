@@ -32,6 +32,8 @@ const ViewContacts = () => {
             setSelectedContact(null);
         } catch (error) {
             console.error('Error deleting contact:', error);
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حذف الرسالة: ${serverMsg || error.message || 'خطأ غير معروف'}`);
         }
     };
 

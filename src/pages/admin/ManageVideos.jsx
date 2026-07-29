@@ -86,6 +86,8 @@ const ManageVideos = () => {
             fetchVideos();
         } catch (error) {
             console.error('Error deleting video:', error);
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حذف الفيديو: ${serverMsg || error.message || 'خطأ غير معروف'}`);
         }
     };
 

@@ -15,6 +15,9 @@ const ManageBooks = () => {
         author: '',
         description: '',
         category: '',
+        pages: '',
+        publisher: '',
+        language: 'العربية',
     });
     const [pdfFile, setPdfFile] = useState(null);
     const fileInputRef = useRef(null);
@@ -47,6 +50,9 @@ const ManageBooks = () => {
         payload.append('author', formData.author);
         payload.append('description', formData.description);
         payload.append('category', formData.category || '');
+        payload.append('pages', formData.pages || '0');
+        payload.append('publisher', formData.publisher || 'دار نشر سبيل الإضاءات');
+        payload.append('language', formData.language || 'العربية');
         if (pdfFile) {
             payload.append('pdf', pdfFile);
         }
@@ -84,6 +90,8 @@ const ManageBooks = () => {
             fetchBooks();
         } catch (error) {
             console.error('Error deleting book:', error);
+            const serverMsg = error.response?.data?.error;
+            alert(`فشل حذف الكتاب: ${serverMsg || error.message || 'خطأ غير معروف'}`);
         }
     };
 
@@ -94,6 +102,9 @@ const ManageBooks = () => {
             author: book.author,
             description: book.description || '',
             category: book.category || '',
+            pages: book.pages || '',
+            publisher: book.publisher || '',
+            language: book.language || 'العربية',
         });
         setPdfFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -101,7 +112,7 @@ const ManageBooks = () => {
     };
 
     const resetForm = () => {
-        setFormData({ title: '', author: '', description: '', category: '' });
+        setFormData({ title: '', author: '', description: '', category: '', pages: '', publisher: '', language: 'العربية' });
         setPdfFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         setEditingBook(null);
@@ -156,6 +167,25 @@ const ManageBooks = () => {
                                     <option key={c.value} value={c.value}>{c.label}</option>
                                 ))}
                             </select>
+                        </div>
+                        <div className="form-group">
+                            <label>عدد الصفحات</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={formData.pages}
+                                onChange={(e) => setFormData({ ...formData, pages: e.target.value })}
+                                placeholder="مثال: 150"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>اللغة</label>
+                            <input
+                                type="text"
+                                value={formData.language}
+                                onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                                placeholder="مثال: العربية"
+                            />
                         </div>
                         <div className="form-group">
                             <label>الوصف</label>

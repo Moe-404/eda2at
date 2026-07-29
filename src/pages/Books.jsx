@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Info } from 'lucide-react';
 import SEO from '../components/SEO';
-import ShareButtons from '../components/ShareButtons';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import { CardGridSkeleton } from '../components/Skeleton';
@@ -29,7 +29,8 @@ const Books = () => {
                 const params = new URLSearchParams({ page, limit: 12 });
                 if (search) params.set('search', search);
                 if (category) params.set('category', category);
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/books?${params}`, {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                const response = await fetch(`${apiUrl}/books?${params}`, {
                     signal: controller.signal,
                 });
                 const json = await response.json();
@@ -97,25 +98,13 @@ const Books = () => {
                                         <h3>{book.title}</h3>
                                         <p className="author">{book.author}</p>
                                         <p className="description">{book.description}</p>
-                                        {book.pdf_url && (
-                                            <a
-                                                href={book.pdf_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-primary full-width"
-                                            >
-                                                <Download size={18} />
-                                                تحميل الكتاب (PDF)
-                                            </a>
-                                        )}
-                                        <div className="book-share">
-                                            <ShareButtons
-                                                url={book.pdf_url}
-                                                title={book.title}
-                                                quote={`كتاب: ${book.title} — ${book.author}`}
-                                                compact
-                                            />
-                                        </div>
+                                        <Link
+                                            to={`/books/${book.id}`}
+                                            className="btn btn-primary full-width"
+                                        >
+                                            <Info size={18} />
+                                            تفاصيل الكتاب
+                                        </Link>
                                     </div>
                                 </div>
                             ))}
