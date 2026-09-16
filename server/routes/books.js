@@ -6,6 +6,7 @@ const fs = require('fs');
 const pool = require('../config/db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { isWordFile, convertWordBufferToPdf } = require('../services/docConverter');
+const { decodeOriginalName } = require('../services/uploadNames');
 
 const router = express.Router();
 
@@ -53,9 +54,10 @@ const handleMulter = (req, res, next) => {
 
 // Persists the uploaded book file to disk as a PDF, converting Word documents first.
 const persistBookFile = async (file) => {
-    const ext = path.extname(file.originalname) || '.pdf';
+    const originalName = decodeOriginalName(file.originalname);
+    const ext = path.extname(originalName) || '.pdf';
     const safeBase = path
-        .basename(file.originalname, ext)
+        .basename(originalName, ext)
         .replace(/[^\p{L}\p{N}._-]+/gu, '_')
         .slice(0, 60) || 'book';
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;

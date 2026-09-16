@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const pool = require('../config/db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { decodeOriginalName } = require('../services/uploadNames');
 
 const router = express.Router();
 
@@ -16,9 +17,10 @@ if (!fs.existsSync(teamUploadsDir)) {
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, teamUploadsDir),
     filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname) || '.jpg';
+        const originalName = decodeOriginalName(file.originalname);
+        const ext = path.extname(originalName) || '.jpg';
         const safeBase = path
-            .basename(file.originalname, ext)
+            .basename(originalName, ext)
             .replace(/[^\p{L}\p{N}._-]+/gu, '_')
             .slice(0, 60) || 'member';
         const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
