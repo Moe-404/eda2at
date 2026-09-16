@@ -5,32 +5,24 @@ const path = require('path');
 const fs = require('fs');
 const pool = require('../config/db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { isWordFile, convertWordBufferToPdf } = require('../services/docConverter');
 
 const router = express.Router();
 
 const booksUploadsDir = path.join(__dirname, '..', 'uploads', 'books');
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, booksUploadsDir),
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname) || '.pdf';
-        const safeBase = path
-            .basename(file.originalname, ext)
-            .replace(/[^\p{L}\p{N}._-]+/gu, '_')
-            .slice(0, 60) || 'book';
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, `${safeBase}-${unique}${ext.toLowerCase()}`);
-    },
-});
-
+// Memory storage: Word uploads need conversion to PDF before they're
+// written to disk, so the file is buffered and persisted manually below.
 const upload = multer({
-    storage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 50 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const isPdf =
-            file.mimetype === 'application/pdf' ||
-            path.extname(file.originalname).toLowerCase() === '.pdf';
-        if (!isPdf) return cb(new Error('يجب أن يكون الملف بصيغة PDF'));
+        const ext = path.extname(file.originalname).toLowerCase();
+        const isPdf = file.mimetype === 'application/pdf' || ext === '.pdf';
+        const isWord = isWordFile(file.originalname, file.mimetype);
+        if (!isPdf && !isWord) {
+            return cb(new Error('يجب أن يكون الملف بصيغة PDF أو Word (doc/docx)'));
+        }
         cb(null, true);
     },
 });
@@ -57,6 +49,27 @@ const handleMulter = (req, res, next) => {
         if (err) return res.status(400).json({ error: err.message || 'فشل رفع الملف' });
         next();
     });
+};
+
+// Persists the uploaded book file to disk as a PDF, converting Word documents first.
+const persistBookFile = async (file) => {
+    const ext = path.extname(file.originalname) || '.pdf';
+    const safeBase = path
+        .basename(file.originalname, ext)
+        .replace(/[^\p{L}\p{N}._-]+/gu, '_')
+        .slice(0, 60) || 'book';
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+
+    if (isWordFile(file.originalname, file.mimetype)) {
+        const pdfBuffer = await convertWordBufferToPdf(file.buffer);
+        const filename = `${safeBase}-${unique}.pdf`;
+        fs.writeFileSync(path.join(booksUploadsDir, filename), pdfBuffer);
+        return filename;
+    }
+
+    const filename = `${safeBase}-${unique}${ext.toLowerCase()}`;
+    fs.writeFileSync(path.join(booksUploadsDir, filename), file.buffer);
+    return filename;
 };
 
 // Get all books (public) - supports search, category, pagination
@@ -137,16 +150,23 @@ router.post('/',
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            if (req.file) try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
             return res.status(400).json({ errors: errors.array() });
         }
 
         if (!req.file) {
-            return res.status(400).json({ error: 'يجب رفع ملف PDF للكتاب' });
+            return res.status(400).json({ error: 'يجب رفع ملف PDF أو Word للكتاب' });
         }
 
         const { title, author, description, category, pages, publisher, language } = req.body;
-        const pdfUrl = buildPublicPdfUrl(req, req.file.filename);
+
+        let filename;
+        try {
+            filename = await persistBookFile(req.file);
+        } catch (error) {
+            console.error('Error processing uploaded file:', error);
+            return res.status(400).json({ error: error.message || 'فشل معالجة الملف المرفوع' });
+        }
+        const pdfUrl = buildPublicPdfUrl(req, filename);
 
         try {
             const result = await pool.query(
@@ -168,7 +188,7 @@ router.post('/',
             res.status(201).json(result.rows[0]);
         } catch (error) {
             console.error('Error creating book:', error);
-            try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
+            deleteFileIfLocal(pdfUrl);
             res.status(500).json({ error: 'Failed to create book' });
         }
     }
@@ -190,18 +210,27 @@ router.put('/:id',
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            if (req.file) try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
             return res.status(400).json({ errors: errors.array() });
         }
 
         const { id } = req.params;
         const { title, author, description, category, pages, publisher, language } = req.body;
-        const newPdfUrl = req.file ? buildPublicPdfUrl(req, req.file.filename) : null;
+
+        let newPdfUrl = null;
+        if (req.file) {
+            try {
+                const filename = await persistBookFile(req.file);
+                newPdfUrl = buildPublicPdfUrl(req, filename);
+            } catch (error) {
+                console.error('Error processing uploaded file:', error);
+                return res.status(400).json({ error: error.message || 'فشل معالجة الملف المرفوع' });
+            }
+        }
 
         try {
             const existing = await pool.query('SELECT pdf_url FROM books WHERE id = $1', [id]);
             if (existing.rows.length === 0) {
-                if (req.file) try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
+                if (newPdfUrl) deleteFileIfLocal(newPdfUrl);
                 return res.status(404).json({ error: 'Book not found' });
             }
 
@@ -236,7 +265,7 @@ router.put('/:id',
             res.json(result.rows[0]);
         } catch (error) {
             console.error('Error updating book:', error);
-            if (req.file) try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
+            if (newPdfUrl) deleteFileIfLocal(newPdfUrl);
             res.status(500).json({ error: 'Failed to update book' });
         }
     }
@@ -294,6 +323,58 @@ router.post('/:id/read', async (req, res) => {
     } catch (error) {
         console.error('Error incrementing reading count:', error);
         res.status(500).json({ error: 'Failed to update reading count' });
+    }
+});
+
+// Save reading progress for an anonymous session
+router.post('/:id/progress', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sessionId, page } = req.body;
+
+        if (!sessionId || typeof sessionId !== 'string') {
+            return res.status(400).json({ error: 'sessionId is required' });
+        }
+        const lastPage = parseInt(page, 10);
+        if (!Number.isInteger(lastPage) || lastPage < 1) {
+            return res.status(400).json({ error: 'page must be a positive integer' });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO reading_progress (book_id, session_id, last_page)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (book_id, session_id)
+             DO UPDATE SET last_page = EXCLUDED.last_page, updated_at = CURRENT_TIMESTAMP
+             RETURNING last_page`,
+            [id, sessionId, lastPage]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error saving reading progress:', error);
+        res.status(500).json({ error: 'Failed to save reading progress' });
+    }
+});
+
+// Fetch reading progress for an anonymous session
+router.get('/:id/progress', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sessionId } = req.query;
+
+        if (!sessionId) {
+            return res.status(400).json({ error: 'sessionId is required' });
+        }
+
+        const result = await pool.query(
+            'SELECT last_page FROM reading_progress WHERE book_id = $1 AND session_id = $2',
+            [id, sessionId]
+        );
+
+        res.json({ last_page: result.rows[0]?.last_page || 1 });
+    } catch (error) {
+        console.error('Error fetching reading progress:', error);
+        res.status(500).json({ error: 'Failed to fetch reading progress' });
     }
 });
 

@@ -120,6 +120,17 @@ INSERT INTO team_departments (title, display_order) VALUES
     ('الخدمات المساندة', 9)
 ON CONFLICT DO NOTHING;
 
+-- Reading progress (anonymous session-based "continue reading")
+CREATE TABLE IF NOT EXISTS reading_progress (
+    id SERIAL PRIMARY KEY,
+    book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+    session_id VARCHAR(100) NOT NULL,
+    last_page INTEGER NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(book_id, session_id)
+);
+CREATE INDEX IF NOT EXISTS idx_reading_progress_session ON reading_progress(session_id);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_books_category ON books(category);

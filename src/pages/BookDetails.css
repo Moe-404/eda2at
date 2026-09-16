@@ -160,6 +160,27 @@
     color: var(--color-text);
 }
 
+.btn-start-reading {
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+/* --- Reader Section --- */
+.book-reader-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 1.5rem;
+}
+
+.book-reader-section .section-header {
+    margin-bottom: 1.5rem;
+}
+
+.book-reader-section .section-header h2 {
+    font-size: 1.5rem;
+}
+
 /* --- Content Column --- */
 .book-content-column {
     display: flex;

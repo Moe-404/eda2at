@@ -1,5 +1,9 @@
 FROM node:18-alpine
 
+# LibreOffice provides the headless 'soffice' binary used to convert
+# uploaded Word documents (books/articles) to PDF for the reader.
+RUN apk add --no-cache libreoffice
+
 WORKDIR /app
 
 # Copy package files

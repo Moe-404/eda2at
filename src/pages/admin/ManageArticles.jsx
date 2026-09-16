@@ -233,13 +233,16 @@ const ManageArticles = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>ملف PDF (اختياري — بديل عن كتابة المحتوى)</label>
+                            <label>ملف PDF أو Word (اختياري — بديل عن كتابة المحتوى)</label>
                             <input
                                 ref={pdfInputRef}
                                 type="file"
-                                accept="application/pdf,.pdf"
+                                accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
                             />
+                            <p style={{ fontSize: '0.8rem', marginTop: '0.35rem', color: '#888' }}>
+                                يمكن رفع ملف Word وسيتم تحويله تلقائياً إلى PDF.
+                            </p>
                             {editingArticle?.pdf_url && !pdfFile && (
                                 <div style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
                                     ملف حالي:{' '}

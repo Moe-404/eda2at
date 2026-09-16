@@ -5,33 +5,29 @@ const path = require('path');
 const fs = require('fs');
 const pool = require('../config/db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { isWordFile, convertWordBufferToPdf } = require('../services/docConverter');
 
 const router = express.Router();
 
 const articlesUploadsDir = path.join(__dirname, '..', 'uploads', 'articles');
 if (!fs.existsSync(articlesUploadsDir)) fs.mkdirSync(articlesUploadsDir, { recursive: true });
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, articlesUploadsDir),
-    filename: (req, file, cb) => {
-        const ext = (path.extname(file.originalname) || '.bin').toLowerCase();
-        const prefix = file.fieldname === 'pdf' ? 'idaat' : 'cover';
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, `${prefix}-${unique}${ext}`);
-    },
-});
-
+// Memory storage: the 'pdf' field may need Word->PDF conversion before it's
+// written to disk, so files are buffered and persisted manually below.
 const upload = multer({
-    storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB (for PDFs)
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
     fileFilter: (req, file, cb) => {
         if (file.fieldname === 'cover' && !file.mimetype.startsWith('image/')) {
             return cb(new Error('يجب أن تكون صورة الغلاف صورة صالحة'));
         }
         if (file.fieldname === 'pdf') {
-            const isPdf = file.mimetype === 'application/pdf'
-                || path.extname(file.originalname).toLowerCase() === '.pdf';
-            if (!isPdf) return cb(new Error('يجب أن يكون الملف بصيغة PDF'));
+            const ext = path.extname(file.originalname).toLowerCase();
+            const isPdf = file.mimetype === 'application/pdf' || ext === '.pdf';
+            const isWord = isWordFile(file.originalname, file.mimetype);
+            if (!isPdf && !isWord) {
+                return cb(new Error('يجب أن يكون الملف بصيغة PDF أو Word (doc/docx)'));
+            }
         }
         cb(null, true);
     },
@@ -45,6 +41,35 @@ const handleUpload = (req, res, next) => {
         if (err) return res.status(400).json({ error: err.message });
         next();
     });
+};
+
+const writeUploadedFile = (filenamePrefix, filename, buffer) => {
+    const finalPath = path.join(articlesUploadsDir, filename);
+    fs.writeFileSync(finalPath, buffer);
+    return filename;
+};
+
+// Persists the 'pdf' field to disk, converting Word documents to PDF first.
+const persistPdfField = async (file) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    if (isWordFile(file.originalname, file.mimetype)) {
+        const pdfBuffer = await convertWordBufferToPdf(file.buffer);
+        const filename = `idaat-${unique}.pdf`;
+        writeUploadedFile('idaat', filename, pdfBuffer);
+        return filename;
+    }
+    const ext = path.extname(file.originalname).toLowerCase() || '.pdf';
+    const filename = `idaat-${unique}${ext}`;
+    writeUploadedFile('idaat', filename, file.buffer);
+    return filename;
+};
+
+const persistCoverField = (file) => {
+    const ext = (path.extname(file.originalname) || '.bin').toLowerCase();
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const filename = `cover-${unique}${ext}`;
+    writeUploadedFile('cover', filename, file.buffer);
+    return filename;
 };
 
 const buildFileUrl = (req, filename) => {
@@ -142,13 +167,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-const cleanupFiles = (files) => {
-    if (!files) return;
-    Object.values(files).flat().forEach((f) => {
-        try { fs.unlinkSync(f.path); } catch (_) {}
-    });
-};
-
 // Create new article (admin only)
 router.post('/',
     authenticateToken,
@@ -166,7 +184,6 @@ router.post('/',
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            cleanupFiles(req.files);
             return res.status(400).json({ errors: errors.array() });
         }
 
@@ -176,12 +193,21 @@ router.post('/',
         const { title, excerpt, content, author, published_date, category, status } = req.body;
 
         if (!content?.trim() && !pdfFile) {
-            cleanupFiles(req.files);
             return res.status(400).json({ error: 'يجب إدخال محتوى المقال أو رفع ملف PDF' });
         }
 
-        const coverUrl = coverFile ? buildFileUrl(req, coverFile.filename) : null;
-        const pdfUrl = pdfFile ? buildFileUrl(req, pdfFile.filename) : null;
+        let coverFilename = null;
+        let pdfFilename = null;
+        try {
+            if (coverFile) coverFilename = persistCoverField(coverFile);
+            if (pdfFile) pdfFilename = await persistPdfField(pdfFile);
+        } catch (error) {
+            console.error('Error processing uploaded file:', error);
+            return res.status(400).json({ error: error.message || 'فشل معالجة الملف المرفوع' });
+        }
+
+        const coverUrl = coverFilename ? buildFileUrl(req, coverFilename) : null;
+        const pdfUrl = pdfFilename ? buildFileUrl(req, pdfFilename) : null;
 
         try {
             const result = await pool.query(
@@ -194,7 +220,8 @@ router.post('/',
             res.status(201).json(result.rows[0]);
         } catch (error) {
             console.error('Error creating article:', error);
-            cleanupFiles(req.files);
+            if (coverFilename) deleteLocalFile(buildFileUrl(req, coverFilename), 'articles');
+            if (pdfFilename) deleteLocalFile(buildFileUrl(req, pdfFilename), 'articles');
             res.status(500).json({ error: 'Failed to create article' });
         }
     }
@@ -210,13 +237,25 @@ router.put('/:id',
         const coverFile = req.files?.['cover']?.[0];
         const pdfFile = req.files?.['pdf']?.[0];
         const { title, excerpt, content, author, published_date, category, status } = req.body;
-        const newCoverUrl = coverFile ? buildFileUrl(req, coverFile.filename) : null;
-        const newPdfUrl = pdfFile ? buildFileUrl(req, pdfFile.filename) : null;
+
+        let newCoverFilename = null;
+        let newPdfFilename = null;
+        try {
+            if (coverFile) newCoverFilename = persistCoverField(coverFile);
+            if (pdfFile) newPdfFilename = await persistPdfField(pdfFile);
+        } catch (error) {
+            console.error('Error processing uploaded file:', error);
+            return res.status(400).json({ error: error.message || 'فشل معالجة الملف المرفوع' });
+        }
+
+        const newCoverUrl = newCoverFilename ? buildFileUrl(req, newCoverFilename) : null;
+        const newPdfUrl = newPdfFilename ? buildFileUrl(req, newPdfFilename) : null;
 
         try {
             const existing = await pool.query('SELECT cover_url, pdf_url FROM articles WHERE id = $1', [id]);
             if (existing.rows.length === 0) {
-                cleanupFiles(req.files);
+                if (newCoverFilename) deleteLocalFile(newCoverUrl, 'articles');
+                if (newPdfFilename) deleteLocalFile(newPdfUrl, 'articles');
                 return res.status(404).json({ error: 'Article not found' });
             }
 
@@ -245,7 +284,8 @@ router.put('/:id',
             res.json(result.rows[0]);
         } catch (error) {
             console.error('Error updating article:', error);
-            cleanupFiles(req.files);
+            if (newCoverFilename) deleteLocalFile(newCoverUrl, 'articles');
+            if (newPdfFilename) deleteLocalFile(newPdfUrl, 'articles');
             res.status(500).json({ error: 'Failed to update article' });
         }
     }

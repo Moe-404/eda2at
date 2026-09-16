@@ -197,15 +197,18 @@ const ManageBooks = () => {
                         </div>
                         <div className="form-group">
                             <label>
-                                ملف PDF {editingBook ? '(اختياري - اتركه فارغاً للإبقاء على الملف الحالي)' : '*'}
+                                ملف الكتاب (PDF أو Word) {editingBook ? '(اختياري - اتركه فارغاً للإبقاء على الملف الحالي)' : '*'}
                             </label>
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept="application/pdf,.pdf"
+                                accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
                                 required={!editingBook}
                             />
+                            <p style={{ fontSize: '0.8rem', marginTop: '0.35rem', color: '#888' }}>
+                                يمكن رفع ملف Word وسيتم تحويله تلقائياً إلى PDF لعرضه في القارئ.
+                            </p>
                             {editingBook?.pdf_url && !pdfFile && (
                                 <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#666' }}>
                                     الملف الحالي:{' '}

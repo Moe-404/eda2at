@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Download, Star, Award, Book, Globe, User, ShieldAlert, Calendar, MessageSquare, Send } from 'lucide-react';
+import { ArrowRight, BookOpen, Star, Award, Book, Globe, User, ShieldAlert, Calendar, MessageSquare, Send } from 'lucide-react';
 import SEO from '../components/SEO';
+import PdfReader from '../components/reader/PdfReader';
+import { getReaderSessionId } from '../hooks/useReaderSession';
 import { categoryLabel } from '../constants/categories';
 import './BookDetails.css';
 
@@ -31,6 +33,11 @@ const BookDetails = () => {
     const [newCommentName, setNewCommentName] = useState('');
     const [newCommentText, setNewCommentText] = useState('');
     const [newCommentRating, setNewCommentRating] = useState(5);
+
+    const [readerOpen, setReaderOpen] = useState(false);
+    const [initialPage, setInitialPage] = useState(1);
+    const readCountedRef = useRef(false);
+    const progressSaveTimer = useRef(null);
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -73,42 +80,53 @@ const BookDetails = () => {
         fetchBookDetails();
     }, [id, apiUrl]);
 
-    const handleRead = async () => {
+    const handleOpenReader = async () => {
         if (!book?.pdf_url) return;
-        window.open(book.pdf_url, '_blank', 'noopener,noreferrer');
 
         try {
-            const res = await fetch(`${apiUrl}/books/${id}/read`, { method: 'POST' });
+            const sessionId = getReaderSessionId();
+            const res = await fetch(`${apiUrl}/books/${id}/progress?sessionId=${encodeURIComponent(sessionId)}`);
             if (res.ok) {
                 const data = await res.json();
-                setBook(prev => prev ? { ...prev, reading_count: data.reading_count } : null);
+                setInitialPage(data.last_page || 1);
             }
         } catch (err) {
-            console.error('Failed to increment read count', err);
+            console.error('Failed to fetch reading progress', err);
+        }
+
+        setReaderOpen(true);
+        requestAnimationFrame(() => {
+            document.getElementById('book-reader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        if (!readCountedRef.current) {
+            readCountedRef.current = true;
+            try {
+                const res = await fetch(`${apiUrl}/books/${id}/read`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    setBook(prev => prev ? { ...prev, reading_count: data.reading_count } : null);
+                }
+            } catch (err) {
+                console.error('Failed to increment read count', err);
+            }
         }
     };
 
-    const handleDownload = async () => {
-        if (!book?.pdf_url) return;
-        
-        // Trigger file download
-        const link = document.createElement('a');
-        link.href = book.pdf_url;
-        link.setAttribute('download', `${book.title}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        try {
-            const res = await fetch(`${apiUrl}/books/${id}/download`, { method: 'POST' });
-            if (res.ok) {
-                const data = await res.json();
-                setBook(prev => prev ? { ...prev, download_count: data.download_count } : null);
-            }
-        } catch (err) {
-            console.error('Failed to increment download count', err);
-        }
+    const handleReaderPageChange = (page) => {
+        if (progressSaveTimer.current) clearTimeout(progressSaveTimer.current);
+        progressSaveTimer.current = setTimeout(() => {
+            fetch(`${apiUrl}/books/${id}/progress`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: getReaderSessionId(), page }),
+            }).catch((err) => console.error('Failed to save reading progress', err));
+        }, 800);
     };
+
+    useEffect(() => () => {
+        if (progressSaveTimer.current) clearTimeout(progressSaveTimer.current);
+    }, []);
 
     const handleRate = (rating) => {
         if (userRating > 0) return; // Allow rating only once in this session for simplicity
@@ -214,20 +232,12 @@ const BookDetails = () => {
 
                         {/* Visual Action Circles */}
                         <div className="action-circles">
-                            <div className="circle-item" onClick={handleRead} title="قراءة الكتاب الآن">
+                            <div className="circle-item" onClick={handleOpenReader} title="قراءة الكتاب الآن">
                                 <div className="circle-icon read">
                                     <BookOpen size={24} />
                                 </div>
                                 <span className="circle-label">قراءة</span>
                                 <span className="circle-val">{(book.reading_count || 0).toLocaleString('ar-EG')}</span>
-                            </div>
-
-                            <div className="circle-item" onClick={handleDownload} title="تحميل ملف الكتاب PDF">
-                                <div className="circle-icon download">
-                                    <Download size={24} />
-                                </div>
-                                <span className="circle-label">تحميل</span>
-                                <span className="circle-val">{(book.download_count || 0).toLocaleString('ar-EG')}</span>
                             </div>
 
                             <div className="circle-item">
@@ -238,6 +248,11 @@ const BookDetails = () => {
                                 <span className="circle-val">{book.pages ? book.pages.toLocaleString('ar-EG') : '—'}</span>
                             </div>
                         </div>
+
+                        <button type="button" className="btn btn-primary btn-start-reading" onClick={handleOpenReader}>
+                            <BookOpen size={18} />
+                            ابدأ القراءة الآن
+                        </button>
                     </div>
 
                     {/* Left side: Metadata & Title & Description */}
@@ -304,6 +319,20 @@ const BookDetails = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Embedded Reader */}
+                {readerOpen && book.pdf_url && (
+                    <div className="book-reader-section" id="book-reader">
+                        <div className="section-header">
+                            <h2>قراءة الكتاب</h2>
+                        </div>
+                        <PdfReader
+                            fileUrl={book.pdf_url}
+                            initialPage={initialPage}
+                            onPageChange={handleReaderPageChange}
+                        />
+                    </div>
+                )}
 
                 {/* Reviews & Comments Section */}
                 <div className="book-reviews-section">
