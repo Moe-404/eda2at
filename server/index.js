@@ -16,6 +16,11 @@ const teamRoutes = require('./routes/team');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Render/Vercel terminate TLS at a proxy. Without this, req.protocol reports
+// 'http' and the absolute upload URLs we hand the frontend get blocked as
+// mixed content on an https page.
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -26,6 +31,18 @@ const booksUploadsDir = path.join(uploadsDir, 'books');
 if (!fs.existsSync(booksUploadsDir)) {
     fs.mkdirSync(booksUploadsDir, { recursive: true });
 }
+
+// Books PDFs are meant to be read in the embedded viewer, not saved locally.
+// This is a deterrent, not a guarantee - a determined visitor can still
+// capture rendered pages, but it removes the one-click "save as" affordance.
+app.use('/uploads/books', (req, res, next) => {
+    if (req.path.toLowerCase().endsWith('.pdf')) {
+        res.setHeader('Content-Disposition', 'inline');
+        res.setHeader('Cache-Control', 'private, no-store');
+    }
+    next();
+});
+
 app.use('/uploads', express.static(uploadsDir));
 
 // Request logging

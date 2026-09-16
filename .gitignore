@@ -25,3 +25,4 @@ server/uploads/
 *.sln
 *.sw?
 *.env
+.claude/settings.local.json
