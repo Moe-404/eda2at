@@ -14,8 +14,9 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Set API URL for production - deployed backend with Supabase
-ARG VITE_API_URL=https://eda2at-backend-47e54e65eda8.hosted.ghaymah.systems/api
+# Baked into the bundle at build time; Railway passes the service variable of
+# the same name as a build arg, so this default is only the fallback.
+ARG VITE_API_URL=https://eda2at-production.up.railway.app/api
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the application
